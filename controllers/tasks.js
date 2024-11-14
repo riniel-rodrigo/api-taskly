@@ -1,17 +1,16 @@
 import db from "../db.js";
 
 export const getTasks = (_, res) => {
-  const qry = "SELECT * FROM task";
+  const qry = "SELECT * FROM task ORDER BY `order`";
 
   db.query(qry, (err, data) => {
-    if (err) return res.json(err); 
+    if (err) return res.json(err);
     return res.status(200).json(data);
   });
 };
 
 export const createTask = (req, res) => {
-  const qry =
-    "INSERT INTO task(name, price, deadline, `order`) VALUES(?)"; 
+  const qry = "INSERT INTO task(name, price, deadline, `order`) VALUES(?)";
 
   const values = [
     req.body.name,
@@ -48,7 +47,33 @@ export const deleteTask = (req, res) => {
 
   db.query(qry, [req.params.id], (err) => {
     if (err) return res.json(err);
-
     return res.status(200).json("Tarefa apagada!");
   });
+};
+
+export const reorderTasks = (req, res) => {
+  const tasks = req.body;
+
+  const queries = tasks.map((task) => {
+    return new Promise((resolve, reject) => {
+      const qry = "UPDATE task SET `order` = ? WHERE id = ?";
+      db.query(qry, [task.order, task.id], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  });
+
+  Promise.all(queries)
+    .then(() => {
+      return res.status(200).json("Ordem das tarefas atualizada!");
+    })
+    .catch((err) => {
+      return res
+        .status(500)
+        .json({ error: "Erro ao reordenar as tarefas.", details: err });
+    });
 };
