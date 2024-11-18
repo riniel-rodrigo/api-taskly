@@ -2,7 +2,6 @@ import db from "../db.js";
 
 export const getTasks = (_, res) => {
   const qry = "SELECT * FROM task ORDER BY `order` ASC";
-
   db.query(qry, (err, data) => {
     if (err) return res.json(err);
     return res.status(200).json(data);
@@ -54,10 +53,10 @@ export const deleteTask = (req, res) => {
 export const reorderTasks = (req, res) => {
   const tasks = req.body;
 
-  const queries = tasks.map((task, index) => {
+  const queries = tasks.map((task) => {
     return new Promise((resolve, reject) => {
       const qry = "UPDATE task SET `order` = ? WHERE `id` = ?";
-      db.query(qry, [index, task.id], (err) => {
+      db.query(qry, [task.order, task.id], (err) => {
         if (err) {
           reject(err);
         } else {
@@ -77,4 +76,3 @@ export const reorderTasks = (req, res) => {
         .json({ error: "Erro ao reordenar as tarefas.", details: err });
     });
 };
-
