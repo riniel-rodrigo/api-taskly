@@ -59,6 +59,7 @@ export const reorderTasks = (req, res) => {
       const qry = "UPDATE task SET `order` = ? WHERE id = ?";
       db.query(qry, [task.order, task.id], (err) => {
         if (err) {
+          console.error(`Erro ao atualizar a tarefa ${task.id}:`, err);
           reject(err);
         } else {
           resolve();
@@ -69,11 +70,11 @@ export const reorderTasks = (req, res) => {
 
   Promise.all(queries)
     .then(() => {
-      return res.status(200).json("Ordem das tarefas atualizada!");
+      console.log("Ordem atualizada com sucesso no banco de dados.");
+      res.status(200).json("Ordem das tarefas atualizada!");
     })
     .catch((err) => {
-      return res
-        .status(500)
-        .json({ error: "Erro ao reordenar as tarefas.", details: err });
+      console.error("Erro ao reordenar as tarefas:", err);
+      res.status(500).json({ error: "Erro ao reordenar as tarefas.", details: err });
     });
 };
