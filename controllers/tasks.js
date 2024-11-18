@@ -55,14 +55,28 @@ export const deleteTask = (req, res) => {
 export const reorderTasks = (req, res) => {
   const tasks = req.body;
 
-  tasks.forEach((task) => {
-    const qry = "UPDATE task SET `order` = ? WHERE id = ?";
-    const values = [task.order, task.id];
+  const updatePromises = tasks.map((task) => {
+      return new Promise((resolve, reject) => {
+          const qry = "UPDATE task SET `order` = ? WHERE id = ?";
+          const values = [task.order, task.id];
 
-    db.query(qry, values, (err, result) => {
-      if (err) {
-        return res.status(500).json(err);
-      }
-    });
+          db.query(qry, values, (err, result) => {
+              if (err) {
+                  reject(err);
+              } else {
+                  resolve(result);
+              }
+          });
+      });
   });
+
+  // espera todas as promises serem resolvidas antes de enviar a resposta
+  Promise.all(updatePromises)
+      .then(() => {
+          res.status(200).json("Ordem das tarefas atualizada com sucesso!");
+      })
+      .catch((err) => {
+          res.status(500).json({ message: "Erro ao atualizar a ordem das tarefas.", error: err });
+      });
 };
+
