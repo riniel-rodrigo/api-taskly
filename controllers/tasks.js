@@ -18,6 +18,8 @@ export const createTask = (req, res) => {
     req.body.order,
   ];
 
+  console.log("tarefa criada.");
+
   db.query(qry, [values], (err) => {
     if (err) return res.json(err);
     return res.status(200).json("Tarefa criada!");
@@ -53,26 +55,14 @@ export const deleteTask = (req, res) => {
 export const reorderTasks = (req, res) => {
   const tasks = req.body;
 
-  const queries = tasks.map((task) => {
-    return new Promise((resolve, reject) => {
-      const qry = "UPDATE task SET `order` = ? WHERE `id` = ?";
-      db.query(qry, [task.order, task.id], (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+  tasks.forEach((task) => {
+    const qry = "UPDATE task SET `order` = ? WHERE id = ?";
+    const values = [task.order, task.id];
+
+    db.query(qry, values, (err, result) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
     });
   });
-
-  Promise.all(queries)
-    .then(() => {
-      return res.status(200).json("Ordem das tarefas atualizada!");
-    })
-    .catch((err) => {
-      return res
-        .status(500)
-        .json({ error: "Erro ao reordenar as tarefas.", details: err });
-    });
 };
